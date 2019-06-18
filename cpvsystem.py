@@ -444,10 +444,54 @@ def get_single_util_factor(x, thld, m_low, m_high):
     return single_uf
 
 
-def calc_uf_lines(x, y):
+def calc_uf_lines(x, y, datatype = 'airmass'):
     """
-    Calculates the parameters of two regression lines for a utilization factor.
-        
+    Calculates the parameters of two regression lines for a utilization factor
+    specified by datatype.
+    
+    Parameters
+    ----------
+    x : list or numpy.array of float
+    
+    y : list or numpy.array of float
+    
+    datatype : string
+        indicates the type of parameter contained in x.
+    
+    Returns
+    -------
+    m_low : numeric
+        inclination of the first regression line of the utilization factor.
+    
+    n_low : numeric
+        ordinate at the origin of the first regression line.
+    
+    m_high : numeric
+        inclination of the second regression line of the utilization factor.
+    
+    n_high : numeric
+        ordinate at the origin of the second regression line.
+    
+    thld : numeric
+        limit between the two regression lines of the utilization factor.
+    """
+    
+    if datatype == 'airmass':
+        return calc_uf_lines_airmass(x, y)
+    
+    elif datatype == 'temp_air':
+        m_low, n_low, rmsd_low = calc_regression_line(x, y)
+        return m_low, n_low, 0, 0, 80
+    
+    else:
+        return 0, 0, 0, 0, 0
+
+
+def calc_uf_lines_airmass(x, y):
+    """
+    Calculates the parameters of two regression lines for the airmass 
+    utilization factor.
+    
     Parameters
     ----------
     x : list or numpy.array of float
@@ -484,7 +528,7 @@ def calc_uf_lines(x, y):
     
     # The x array is traversed in order to find the most fitting 
     # regression lines.
-    for i in x:
+    for i in np.arange(1.5, 7.5, 0.1):
         # The original measurements are divided into two sets by the limit.
         for j in range(len(x)):
             if x[j] < i:
