@@ -16,7 +16,7 @@ from pvlib.location import Location
 
 import math
 from sklearn import linear_model
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error
 
 
 class CPVSystem(object):
@@ -553,6 +553,7 @@ def calc_uf_lines_airmass(x, y):
             n_low = n_low_temp
             m_high = m_high_temp
             n_high = n_high_temp
+            rmsd = rmsd_temp
     
     # The intersection between the two final regression lines is calculated.
     thld = (n_high - n_low) / (m_low - m_high)
