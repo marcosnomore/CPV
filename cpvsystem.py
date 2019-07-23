@@ -10,9 +10,8 @@ import os
 import numpy as np
 import pandas as pd
 
-from pvlib import atmosphere, irradiance, tools, singlediode as _singlediode
+from pvlib import atmosphere, irradiance
 from pvlib.tools import _build_kwargs
-from pvlib.location import Location
 
 import math
 from sklearn import linear_model
@@ -33,8 +32,6 @@ class CPVSystem(object):
           (`modules_per_string=1`, `strings_per_inverter=M`).
         * `NxM` total modules arranged in `M` strings of `N` modules each
           (`modules_per_string=N`, `strings_per_inverter=M`).
-
-    The class is complementary to the module-level functions.
 
     The attributes should generally be things that don't change about
     the system, such the type of module and the inverter. The instance
@@ -112,7 +109,7 @@ class CPVSystem(object):
 
     def __repr__(self):
         attrs = ['name', 'module', 'inverter', 'racking_model']
-        return ('PVSystem: \n  ' + '\n  '.join(
+        return ('CPVSystem: \n  ' + '\n  '.join(
             ('{}: {}'.format(attr, getattr(self, attr)) for attr in attrs)))
 
     def get_irradiance(self, solar_zenith, solar_azimuth, dni, ghi, dhi,
@@ -299,7 +296,7 @@ class CPVSystem(object):
     
     def get_dni_util_factor(self, dni, dni_thld, dni_uf_m_low, dni_uf_m_high):
         """
-        Retrieves the utilization factor for SMR top-middle.
+        Retrieves the utilization factor for DNI.
         
         Parameters
         ----------
@@ -412,6 +409,182 @@ class CPVSystem(object):
         return uf
 
 
+class StaticCPVSystem(CPVSystem):
+    """
+    The StaticCPVSystem class defines a set of CPV system attributes and 
+    modeling functions. This class describes the collection and interactions of 
+    Static CPV system components installed on a Fixed Panel.
+
+    The class supports basic system topologies consisting of:
+
+        * `N` total modules arranged in series
+          (`modules_per_string=N`, `strings_per_inverter=1`).
+        * `M` total modules arranged in parallel
+          (`modules_per_string=1`, `strings_per_inverter=M`).
+        * `NxM` total modules arranged in `M` strings of `N` modules each
+          (`modules_per_string=N`, `strings_per_inverter=M`).
+
+    The attributes should generally be things that don't change about
+    the system, such the type of module and the inverter. The instance
+    methods accept arguments for things that do change, such as
+    irradiance and temperature.
+
+    Parameters
+    ----------
+    surface_tilt: float or array-like, default 0
+        Surface tilt angles in decimal degrees.
+        The tilt angle is defined as degrees from horizontal
+        (e.g. surface facing up = 0, surface facing horizon = 90)
+
+    surface_azimuth: float or array-like, default 180
+        Azimuth angle of the module surface.
+        North=0, East=90, South=180, West=270.
+
+    module : None or string, default None
+        The model name of the modules.
+        May be used to look up the module_parameters dictionary
+        via some other method.
+
+    module_parameters : None, dict or Series, default None
+        Module parameters as defined by the SAPM, CEC, or other.
+
+    modules_per_string: int or float, default 1
+        See system topology discussion above.
+
+    strings_per_inverter: int or float, default 1
+        See system topology discussion above.
+
+    inverter : None or string, default None
+        The model name of the inverters.
+        May be used to look up the inverter_parameters dictionary
+        via some other method.
+
+    inverter_parameters : None, dict or Series, default None
+        Inverter parameters as defined by the SAPM, CEC, or other.
+
+    racking_model : None or string, default 'open_rack_cell_glassback'
+        Used for cell and module temperature calculations.
+
+    losses_parameters : None, dict or Series, default None
+        Losses parameters as defined by PVWatts or other.
+
+    name : None or string, default None
+
+    **kwargs
+        Arbitrary keyword arguments.
+        Included for compatibility, but not used.
+    """
+    
+    def __init__(self,
+                 surface_tilt=0, surface_azimuth=180,
+                 module=None, module_parameters=None,
+                 modules_per_string=1, strings_per_inverter=1,
+                 inverter=None, inverter_parameters=None,
+                 racking_model='open_rack_cell_glassback',
+                 losses_parameters=None, name=None, **kwargs):
+        
+        self.surface_tilt = surface_tilt
+        self.surface_azimuth = surface_azimuth
+        
+        CPVSystem.__init__(self,
+                     module, module_parameters, modules_per_string,
+                     strings_per_inverter, inverter, inverter_parameters,
+                     racking_model, losses_parameters, name, **kwargs)
+	
+    def __repr__(self):
+        attrs = ['name', 'module', 'inverter', 'racking_model']
+        return ('StaticCPVSystem: \n  ' + '\n  '.join(
+            ('{}: {}'.format(attr, getattr(self, attr)) for attr in attrs)))
+
+    def get_irradiance(self, solar_zenith, solar_azimuth, dni, ghi, dhi,
+                       dni_extra=None, airmass=None, model='haydavies',
+                       **kwargs):
+        """
+        Uses the :py:func:`irradiance.get_total_irradiance` function to
+        calculate the plane of array irradiance components on a Fixed panel.
+
+        Parameters
+        ----------
+        solar_zenith : float or Series.
+            Solar zenith angle.
+        solar_azimuth : float or Series.
+            Solar azimuth angle.
+        dni : float or Series
+            Direct Normal Irradiance
+        ghi : float or Series
+            Global horizontal irradiance
+        dhi : float or Series
+            Diffuse horizontal irradiance
+        dni_extra : None, float or Series, default None
+            Extraterrestrial direct normal irradiance
+        airmass : None, float or Series, default None
+            Airmass
+        model : String, default 'haydavies'
+            Irradiance model.
+
+        **kwargs
+            Passed to :func:`irradiance.total_irrad`.
+
+        Returns
+        -------
+        poa_irradiance : DataFrame
+            Column names are: ``total, beam, sky, ground``.
+        """
+
+        # not needed for all models, but this is easier
+        if dni_extra is None:
+            dni_extra = irradiance.get_extra_radiation(solar_zenith.index)
+
+        if airmass is None:
+            airmass = atmosphere.get_relative_airmass(solar_zenith)
+
+        return irradiance.get_total_irradiance(self.surface_tilt,
+                                               self.surface_azimuth,
+                                               solar_zenith, solar_azimuth,
+                                               dni, ghi, dhi,
+                                               dni_extra=dni_extra,
+                                               airmass=airmass,
+                                               model=model,
+                                               albedo=self.albedo,
+                                               **kwargs)
+
+    def get_aoi_util_factor(self, aoi, aoi_thld, aoi_uf_m_low, aoi_uf_m_high):
+        """
+        Retrieves the utilization factor for the Angle of Incidence.
+        
+        Parameters
+        ----------
+        aoi : numeric
+            Angle of Incidence
+            
+        aoi_thld : numeric
+            limit between the two regression lines of the utilization factor.
+            
+        aoi_uf_m_low : numeric
+            inclination of the first regression line of the utilization factor 
+            for AOI.
+            
+        aoi_uf_m_low_uf_m_high : numeric
+            inclination of the second regression line of the utilization factor 
+            for AOI.
+        
+        Returns
+        -------
+        aoi_uf : numeric
+            the utilization factor for AOI.
+        """
+                
+        aoi_uf = get_single_util_factor(x = aoi, thld = aoi_thld, 
+                                        m_low = aoi_uf_m_low,
+                                        m_high = aoi_uf_m_high)
+        
+        if aoi_uf < 0:
+            return 0
+        
+        return aoi_uf
+
+
+
 def get_single_util_factor(x, thld, m_low, m_high):
     """
     Retrieves the utilization factor for a variable.
@@ -476,8 +649,8 @@ def calc_uf_lines(x, y, datatype = 'airmass'):
         limit between the two regression lines of the utilization factor.
     """
     
-    if datatype == 'airmass':
-        return calc_uf_lines_airmass(x, y)
+    if datatype == 'airmass' or datatype == 'aoi':
+        return calc_two_regression_lines(x, y)
     
     elif datatype == 'temp_air':
         m_low, n_low, rmsd_low = calc_regression_line(x, y)
@@ -487,10 +660,10 @@ def calc_uf_lines(x, y, datatype = 'airmass'):
         return 0, 0, 0, 0, 0
 
 
-def calc_uf_lines_airmass(x, y):
+def calc_two_regression_lines(x, y):
     """
-    Calculates the parameters of two regression lines for the airmass 
-    utilization factor.
+    Calculates the parameters of two regression lines for the composed 
+    utilization factors.
     
     Parameters
     ----------
