@@ -3,13 +3,10 @@ The ``cpvsystem`` module contains functions for modeling the output and
 performance of CPV modules.
 """
 
-from pvlib import pvsystem
-from collections import OrderedDict
-import io
-import os
 import numpy as np
-import pandas as pd
+from collections import OrderedDict
 
+from pvlib import pvsystem
 from pvlib import atmosphere, irradiance
 from pvlib.tools import _build_kwargs
 
@@ -654,7 +651,8 @@ def calc_uf_lines(x, y, datatype = 'airmass'):
     
     elif datatype == 'temp_air':
         m_low, n_low, rmsd_low = calc_regression_line(x, y)
-        return m_low, n_low, 0, 0, 80
+        n_high = m_low * 80 + n_low
+        return m_low, n_low, 0, n_high, 80
     
     else:
         return 0, 0, 0, 0, 0
