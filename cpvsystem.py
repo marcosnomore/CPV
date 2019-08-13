@@ -747,11 +747,9 @@ def calc_two_regression_lines(x, y, limit = 200):
                 y_aux2.append(y[j])
         
         # Regression lines are calculated for the two sets.
-        m_low_temp, n_low_temp, rmsd_low_temp = calc_regression_line(x_aux1, 
-                                                                     y_aux1)
+        m_low, n_low, rmsd_low = calc_regression_line(x_aux1, y_aux1)
             
-        m_high_temp, n_high_temp, rmsd_high_temp = calc_regression_line(x_aux2,
-                                                                        y_aux2)
+        m_high, n_high, rmsd_high = calc_regression_line(x_aux2, y_aux2)
         
         # The intersection between the two final regression lines is 
         # calculated as it can not be exactly the limit forced.

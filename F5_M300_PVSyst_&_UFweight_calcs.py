@@ -1,13 +1,10 @@
 # Aplicación del modelo PVSyst
 
-IscDNI = data[:, 25]
-DNI = data[:, 16]
-
 module_params = {'gamma_ref' : 4.456, 'mu_gamma' : 0.0012, 'I_L_ref' : 3.346, 
                  'I_o_ref' : 0.000000000004, 'R_sh_ref' : 4400, 
                  'R_sh_0': 17500, 'R_sh_exp' : 5.50, 'R_s' : 0.736, 
                  'alpha_sc' : 0.00, 'irrad_ref' : 1000, 'temp_ref' : 25, 
-                 'cells_in_series' : 42}
+                 'cells_in_series' : 42, 'eta_m' : 0.29}
 
 csys = CPVSystem(module=None, module_parameters=module_params,
                  modules_per_string=1, strings_per_inverter=1,
@@ -15,7 +12,14 @@ csys = CPVSystem(module=None, module_parameters=module_params,
                  racking_model='freestanding',
                  losses_parameters=None, name=None)
 
-celltemp = csys.pvsyst_celltemp(data[:, 17], data[:, 10], data[:, 8])
+GNI = data[:, 17]
+AmbientTemp = data[:, 10]
+WindSpeed = data[:, 8]
+
+celltemp = csys.pvsyst_celltemp(GNI, AmbientTemp, WindSpeed)
+
+IscDNI = data[:, 25]
+DNI = data[:, 16]
 
 (photocurrent, saturation_current, resistance_series,
          resistance_shunt, nNsVth) = (csys.calcparams_pvsyst(DNI, celltemp))
@@ -45,3 +49,4 @@ for weight_am in np.arange(0,1,0.05):
     if rmsd_temp < rmsd:
         weight_am_final = weight_am
         rmsd = rmsd_temp
+
