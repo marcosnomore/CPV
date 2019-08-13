@@ -19,7 +19,7 @@ for i in np.arange(1,2.8,0.1):
         IscDNI_medians.append(stats.median(array_aux1))
         Airmass_aux.append(i)
 
-#m_low, n_low, m_high, n_high, thld = calc_uf_lines_airmass(Airmass_aux, IscDNI_medians)
+#m_low, n_low, m_high, n_high, thld = calc_two_regression_lines(Airmass_aux, IscDNI_medians)
 m_low, n_low, error1 = calc_regression_line(Airmass_aux[:10], 
                                             IscDNI_medians[:10])
 m_high, n_high, error2 = calc_regression_line(Airmass_aux[10:], 

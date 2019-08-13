@@ -614,7 +614,7 @@ def get_single_util_factor(x, thld, m_low, m_high):
     return single_uf
 
 
-def calc_uf_lines(x, y, datatype = 'airmass'):
+def calc_uf_lines(x, y, datatype = 'airmass', limit = 200):
     """
     Calculates the parameters of two regression lines for a utilization factor
     specified by datatype.
@@ -627,6 +627,9 @@ def calc_uf_lines(x, y, datatype = 'airmass'):
     
     datatype : string
         indicates the type of parameter contained in x.
+    
+    limit : numeric, optional
+        forces the limit between the regression lines.
     
     Returns
     -------
@@ -646,19 +649,19 @@ def calc_uf_lines(x, y, datatype = 'airmass'):
         limit between the two regression lines of the utilization factor.
     """
     
-    if datatype == 'airmass' or datatype == 'aoi':
-        return calc_two_regression_lines(x, y)
+    if datatype == 'airmass':
+        return calc_two_regression_lines(x, y, limit)
     
     elif datatype == 'temp_air':
         m_low, n_low, rmsd_low = calc_regression_line(x, y)
-        n_high = m_low * 80 + n_low
-        return m_low, n_low, 0, n_high, 80
+        n_high = m_low * limit + n_low
+        return m_low, n_low, 0, n_high, limit
     
     else:
         return 0, 0, 0, 0, 0
 
 
-def calc_two_regression_lines(x, y):
+def calc_two_regression_lines(x, y, limit = 200):
     """
     Calculates the parameters of two regression lines for the composed 
     utilization factors.
@@ -668,6 +671,9 @@ def calc_two_regression_lines(x, y):
     x : list or numpy.array of float
     
     y : list or numpy.array of float
+    
+    limit : numeric, optional
+        forces the limit between the regression lines.
     
     Returns
     -------
@@ -694,40 +700,62 @@ def calc_two_regression_lines(x, y):
     y_aux1 = [] 
     y_aux2 = [] 
     
-    m_low, n_low, m_high, n_high, thld = 0, 0, 0, 0, 0
-    rmsd = 10000
+    if limit == 200:
+        m_low, n_low, m_high, n_high, thld = 0, 0, 0, 0, 0
+        rmsd = 10000
+        
+        # The x array is traversed in order to find the most fitting 
+        # regression lines.
+        for i in np.arange(1.5, 7.5, 0.1):
+            # The original measurements are divided into two sets by the limit.
+            for j in range(len(x)):
+                if x[j] < i:
+                    x_aux1.append(x[j])
+                    y_aux1.append(y[j])
+                else:
+                    x_aux2.append(x[j])
+                    y_aux2.append(y[j])
+                
+            # Regression lines are calculated for the two sets.
+            m_low_temp, n_low_temp, rmsd_low_temp = calc_regression_line(
+                    x_aux1, y_aux1)
+            
+            m_high_temp, n_high_temp, rmsd_high_temp = calc_regression_line(
+                    x_aux2, y_aux2)
+        
+            # Less suitable regression lines are rejected.
+            rmsd_temp = rmsd_low_temp + rmsd_high_temp
+        
+            if rmsd_temp < rmsd:
+                m_low = m_low_temp
+                n_low = n_low_temp
+                m_high = m_high_temp
+                n_high = n_high_temp
+                rmsd = rmsd_temp
     
-    # The x array is traversed in order to find the most fitting 
-    # regression lines.
-    for i in np.arange(1.5, 7.5, 0.1):
+        # The intersection between the two final regression lines is calculated.
+        thld = (n_high - n_low) / (m_low - m_high)
+    
+    else:
         # The original measurements are divided into two sets by the limit.
         for j in range(len(x)):
-            if x[j] < i:
+            if x[j] < limit:
                 x_aux1.append(x[j])
                 y_aux1.append(y[j])
             else:
                 x_aux2.append(x[j])
                 y_aux2.append(y[j])
-                
+        
         # Regression lines are calculated for the two sets.
         m_low_temp, n_low_temp, rmsd_low_temp = calc_regression_line(x_aux1, 
                                                                      y_aux1)
             
-        m_high_temp, n_high_temp, rmsd_high_temp = calc_regression_line(x_aux2, 
+        m_high_temp, n_high_temp, rmsd_high_temp = calc_regression_line(x_aux2,
                                                                         y_aux2)
         
-        # Less suitable regression lines are rejected.
-        rmsd_temp = rmsd_low_temp + rmsd_high_temp
-        
-        if rmsd_temp < rmsd:
-            m_low = m_low_temp
-            n_low = n_low_temp
-            m_high = m_high_temp
-            n_high = n_high_temp
-            rmsd = rmsd_temp
-    
-    # The intersection between the two final regression lines is calculated.
-    thld = (n_high - n_low) / (m_low - m_high)
+        # The intersection between the two final regression lines is 
+        # calculated as it can not be exactly the limit forced.
+        thld = (n_high - n_low) / (m_low - m_high)
     
     return m_low, n_low, m_high, n_high, thld
 
