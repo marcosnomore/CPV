@@ -1,14 +1,14 @@
-# Cálculos de la Masa de Aire
+# CÃ¡lculos de la Masa de Aire
 import numpy as np
 import pvlib
 import datetime
 
 data = np.loadtxt(
-        'C:\\Users\\Marcos\\Desktop\\datos modelado\\m300_data_filtered.txt', 
+        'C:\\Users\\Marcos\\Desktop\\datos modelado\\insolight_data.txt', 
         delimiter = ',')
 
 datetimestring = np.genfromtxt(
-        'C:\\Users\\Marcos\\Desktop\\datos modelado\\m300_datetime.txt', 
+        'C:\\Users\\Marcos\\Desktop\\datos modelado\\insolight_datestr.txt', 
         dtype='str', delimiter = '\n')
 
 datetimeobject = []
@@ -17,8 +17,8 @@ for i in range(len(datetimestring)):
                                                      '%d-%b-%Y %H:%M:%S'))
     
 
-panel_location = pvlib.location.Location(latitude=45.641603,longitude=5.875387, 
-                                         tz=1, altitude=234)
+panel_location = pvlib.location.Location(latitude=40.453,longitude=-3.727, 
+                                         tz=1, altitude=658)
 
 Airmass = panel_location.get_airmass(times=datetimeobject)
 
@@ -30,5 +30,5 @@ for i in range(len(airmass_array)):
 
 data = np.append(data, relative_airmass, 1)
 
-np.savetxt(fname='C:\\Users\\Marcos\\Desktop\\datos modelado\\m300_data_filtered_complete.txt', 
+np.savetxt(fname='C:\\Users\\Marcos\\Desktop\\datos modelado\\insolight_data_complete.txt', 
            X=data, delimiter=',', fmt='%.10f')
