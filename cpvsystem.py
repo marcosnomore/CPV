@@ -745,7 +745,7 @@ def get_single_util_factor(x, thld, m_low, m_high):
     return single_uf
 
 
-def calc_uf_lines(x, y, datatype = 'airmass', limit = 200):
+def calc_uf_lines(x, y, datatype = 'airmass', limit = None):
     """
     Calculates the parameters of two regression lines for a utilization factor
     specified by datatype.
@@ -780,11 +780,15 @@ def calc_uf_lines(x, y, datatype = 'airmass', limit = 200):
         limit between the two regression lines of the utilization factor.
     """
     
-    if datatype == 'airmass':
+    if datatype == 'airmass' or datatype == 'aoi':
         return calc_two_regression_lines(x, y, limit)
     
     elif datatype == 'temp_air':
         m_low, n_low, rmsd_low = calc_regression_line(x, y)
+        
+        if limit is None:
+            limit = 200
+        
         n_high = m_low * limit + n_low
         return m_low, n_low, 0, n_high, limit
     
@@ -792,7 +796,7 @@ def calc_uf_lines(x, y, datatype = 'airmass', limit = 200):
         return 0, 0, 0, 0, 0
 
 
-def calc_two_regression_lines(x, y, limit = 200):
+def calc_two_regression_lines(x, y, limit):
     """
     Calculates the parameters of two regression lines for the composed 
     utilization factors.
@@ -824,23 +828,23 @@ def calc_two_regression_lines(x, y, limit = 200):
         limit between the two regression lines of the utilization factor.
     """
     
-    # Auxiliar variables initialization.
-    x_aux1 = []
-    x_aux2 = []
-    
-    y_aux1 = [] 
-    y_aux2 = [] 
-    
-    if limit == 200:
+    if limit is None:
         m_low, n_low, m_high, n_high, thld = 0, 0, 0, 0, 0
         rmsd = 10000
         
         # The x array is traversed in order to find the most fitting 
         # regression lines.
-        for i in np.arange(1.5, 7.5, 0.1):
+        for i in np.arange(x[0], x[-2], 0.1):
+            # Auxiliar variables initialization.
+            x_aux1 = []
+            x_aux2 = []
+    
+            y_aux1 = [] 
+            y_aux2 = [] 
+            
             # The original measurements are divided into two sets by the limit.
             for j in range(len(x)):
-                if x[j] < i:
+                if x[j] <= i:
                     x_aux1.append(x[j])
                     y_aux1.append(y[j])
                 else:
@@ -868,9 +872,16 @@ def calc_two_regression_lines(x, y, limit = 200):
         thld = (n_high - n_low) / (m_low - m_high)
     
     else:
+        # Auxiliar variables initialization.
+        x_aux1 = []
+        x_aux2 = []
+    
+        y_aux1 = [] 
+        y_aux2 = [] 
+    
         # The original measurements are divided into two sets by the limit.
         for j in range(len(x)):
-            if x[j] < limit:
+            if x[j] <= limit:
                 x_aux1.append(x[j])
                 y_aux1.append(y[j])
             else:

@@ -14,7 +14,7 @@ datetimestring = np.genfromtxt(
 datetimeobject = []
 for i in range(len(datetimestring)):
     datetimeobject.append(datetime.datetime.strptime(datetimestring[i], 
-                                                     '%d-%b-%Y %H:%M:%S'))
+                                                     '%d-%b-%Y %H:%M'))
     
 
 panel_location = pvlib.location.Location(latitude=40.453,longitude=-3.727, 

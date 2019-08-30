@@ -1,10 +1,10 @@
 # Aplicación del modelo PVSyst
 
-module_params = {'gamma_ref' : 4.456, 'mu_gamma' : 0.0012, 'I_L_ref' : 3.346, 
-                 'I_o_ref' : 0.000000000004, 'R_sh_ref' : 4400, 
-                 'R_sh_0': 17500, 'R_sh_exp' : 5.50, 'R_s' : 0.736, 
+module_params = {'gamma_ref' : 5.524, 'mu_gamma' :R 0.0012, 'I_L_ref' : 0.96, 
+                 'I_o_ref' :R 0.000000000004, 'R_sh_ref' : 5226, 
+                 'R_sh_0': 21000, 'R_sh_exp' : 5.50, 'R_s' : 0.01, 
                  'alpha_sc' : 0.00, 'EgRef' : 1.87, 'irrad_ref' : 1000, 
-                 'temp_ref' : 25, 'cells_in_series' : 42, 'eta_m' : 0.29, 
+                 'temp_ref' : 25, 'cells_in_series' : 12, 'eta_m' : 0.32, 
                  'alpha_absorption' : 0.9}
 
 csys = CPVSystem(module=None, module_parameters=module_params,
@@ -13,14 +13,14 @@ csys = CPVSystem(module=None, module_parameters=module_params,
                  racking_model='freestanding',
                  losses_parameters=None, name=None)
 
-GNI = data[:, 17]
-AmbientTemp = data[:, 10]
-WindSpeed = data[:, 8]
+GNI = filt_data[:, 10]
+AmbientTemp = filt_data[:, 8]
+WindSpeed = filt_data[:, 11]
 
 celltemp = csys.pvsyst_celltemp(GNI, AmbientTemp, WindSpeed)
 
-IscDNI = data[:, 25]
-DNI = data[:, 16]
+IscDNI = np.divide(filt_data[:,5],filt_data[:,14])
+DNI = filt_data[:, 14]
 
 (photocurrent, saturation_current, resistance_series,
          resistance_shunt, nNsVth) = (csys.calcparams_pvsyst(DNI, celltemp))
@@ -34,7 +34,7 @@ csys.dc = csys.singlediode(photocurrent, saturation_current, resistance_series,
 
 # Obtención de los Pesos para los Factores de Utilización
 
-real_power = data[:, 4]
+real_power = filt_data[:, 2]
 estimation = csys.dc['p_mp']
 
 weight_am_final = 1.0
@@ -53,8 +53,8 @@ for weight_am in np.arange(0,1,0.05):
 
 
 
-AirMass = data[:,33]
-real_voltage = data[:, 0]
+AirMass = filt_data[:,24]
+real_voltage = filt_data[:, 6]
 estimation_volt = csys.dc['v_oc']
 
 residuals_volt = estimation_volt - real_voltage
@@ -62,7 +62,7 @@ residuals_volt = estimation_volt - real_voltage
 plt.plot(AirMass, residuals_volt, 'b.')
 
 
-real_current = data[:, 1]
+real_current = filt_data[:, 1]
 estimation_curr = csys.dc['i_sc']
 
 residuals_curr = estimation_curr - real_current
