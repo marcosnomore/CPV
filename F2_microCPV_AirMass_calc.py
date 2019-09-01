@@ -1,4 +1,4 @@
-# CÃ¡lculos de la Masa de Aire
+# Cálculos de la Masa de Aire
 import numpy as np
 import pvlib
 import datetime

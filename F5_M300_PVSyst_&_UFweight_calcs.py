@@ -19,7 +19,6 @@ WindSpeed = data[:, 8]
 
 celltemp = csys.pvsyst_celltemp(GNI, AmbientTemp, WindSpeed)
 
-IscDNI = data[:, 25]
 DNI = data[:, 16]
 
 (photocurrent, saturation_current, resistance_series,

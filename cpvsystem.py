@@ -557,6 +557,28 @@ class StaticCPVSystem(CPVSystem):
         attrs = ['name', 'module', 'inverter', 'racking_model']
         return ('StaticCPVSystem: \n  ' + '\n  '.join(
             ('{}: {}'.format(attr, getattr(self, attr)) for attr in attrs)))
+    
+    def get_aoi(self, solar_zenith, solar_azimuth):
+        """
+        Get the angle of incidence on the Static CPV System.
+
+        Parameters
+        ----------
+        solar_zenith : float or Series.
+            Solar zenith angle.
+            
+        solar_azimuth : float or Series.
+            Solar azimuth angle.
+
+        Returns
+        -------
+        aoi : Series
+            The angle of incidence
+        """
+
+        aoi = irradiance.aoi(self.surface_tilt, self.surface_azimuth,
+                             solar_zenith, solar_azimuth)
+        return aoi
 
     def get_irradiance(self, solar_zenith, solar_azimuth, dni, ghi, dhi,
                        dni_extra=None, airmass=None, model='haydavies',
