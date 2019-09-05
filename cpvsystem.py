@@ -257,7 +257,7 @@ class CPVSystem(object):
             the utilization factor for airmass.
         """
         
-        return get_single_util_factor(x = airmass, thld = am_thld, 
+        return get_simple_util_factor(x = airmass, thld = am_thld, 
                                       m_low = am_uf_m_low,
                                       m_high = am_uf_m_high)
     
@@ -288,7 +288,7 @@ class CPVSystem(object):
             the utilization factor for ambient temperature.
         """
         
-        return get_single_util_factor(x = temp_air, thld = ta_thld, 
+        return get_simple_util_factor(x = temp_air, thld = ta_thld, 
                                       m_low = ta_uf_m_low,
                                       m_high = ta_uf_m_high)
     
@@ -318,7 +318,7 @@ class CPVSystem(object):
             the utilization factor for DNI.
         """
                 
-        return get_single_util_factor(x = dni, thld = dni_thld, 
+        return get_simple_util_factor(x = dni, thld = dni_thld, 
                                       m_low = dni_uf_m_low,
                                       m_high = dni_uf_m_high)
     
@@ -390,19 +390,20 @@ class CPVSystem(object):
             global utilization factor.
         """
         
-        am_uf = get_single_util_factor(x = airmass, thld = am_thld, 
+        am_uf = get_simple_util_factor(x = airmass, thld = am_thld, 
                                        m_low = am_uf_m_low,
                                        m_high = am_uf_m_high)
         
-        ta_uf = get_single_util_factor(x = temp_air, thld = ta_thld, 
+        ta_uf = get_simple_util_factor(x = temp_air, thld = ta_thld, 
                                        m_low = ta_uf_m_low,
                                        m_high = ta_uf_m_high)
         
-        dni_uf = get_single_util_factor(x = dni, thld = dni_thld, 
+        dni_uf = get_simple_util_factor(x = dni, thld = dni_thld, 
                                         m_low = dni_uf_m_low,
                                         m_high = dni_uf_m_high)
         
-        uf = am_uf * am_weight + ta_uf * ta_weight + dni_uf * dni_weight
+        uf = (np.multiply(am_uf, am_weight) + np.multiply(ta_uf, ta_weight) 
+            + np.multiply(dni_uf, dni_weight))
         
         return uf
 
@@ -658,7 +659,7 @@ class StaticCPVSystem(CPVSystem):
             the utilization factor for AOI.
         """
                 
-        aoi_uf = get_single_util_factor(x = aoi, thld = aoi_thld, 
+        aoi_uf = get_simple_util_factor(x = aoi, thld = aoi_thld, 
                                         m_low = aoi_uf_m_low,
                                         m_high = aoi_uf_m_high)
         
@@ -735,13 +736,14 @@ class LocalizedStaticCPVSystem(CPVSystem, Location):
 
 
 
-def get_single_util_factor(x, thld, m_low, m_high):
+def get_simple_util_factor(x, thld, m_low, m_high):
     """
     Retrieves the utilization factor for a variable.
     
     Parameters
     ----------
-    x : variable value for the utilization factor calc.
+    x : numeric / array-like
+        variable value(s) for the utilization factor calc.
     
     thld : numeric
         limit between the two regression lines of the utilization factor.
@@ -757,14 +759,20 @@ def get_single_util_factor(x, thld, m_low, m_high):
     single_uf : numeric
         utilization factor for the x variable.
     """
+    if not isinstance(x, np.ndarray):
+        x = np.array(x, ndmin=1)
     
-    if x <= thld:
-        single_uf = 1 + (x - thld) * m_low
+    suf = []
     
-    else:
-        single_uf = 1 + (x - thld) * m_high
+    for i in range(len(x)):
+        if x[i] <= thld:
+            simple_uf = 1 + (x[i] - thld) * m_low
+        else:
+            simple_uf = 1 + (x[i] - thld) * m_high
+        
+        suf.append(simple_uf)
     
-    return single_uf
+    return suf
 
 
 def calc_uf_lines(x, y, datatype = 'airmass', limit = None):
@@ -809,7 +817,7 @@ def calc_uf_lines(x, y, datatype = 'airmass', limit = None):
         m_low, n_low, rmsd_low = calc_regression_line(x, y)
         
         if limit is None:
-            limit = 200
+            limit = 50
         
         n_high = m_low * limit + n_low
         return m_low, n_low, 0, n_high, limit

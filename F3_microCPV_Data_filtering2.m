@@ -9,11 +9,12 @@ DNI=insolight_data_complete_may(:,2);
 WindSpeed=insolight_data_complete_may(:,8);
 Airmass = insolight_data_complete_may(:,18);
 Isc = insolight_data_complete_may(:,13);
+Azimuth = insolight_data_complete_may(:,20);
 
 insolight_filtered_measurements=zeros(3000, 20);
 j=1; 
 for i=1:7926
-    if (SMR_tm(i,1) < 1.3)&&(SMR_tm(i,1) > 0.96)&&(DNI(i,1) > 600)&&(WindSpeed(i,1) < 10)&&(Airmass(i,1) < 10)&&(Isc(i,1) > 0.1)
+    if (SMR_tm(i,1) < 1.3)&&(SMR_tm(i,1) > 0.96)&&(DNI(i,1) > 600)&&(WindSpeed(i,1) < 10)&&(Airmass(i,1) < 10)&&(Isc(i,1) > 0.1)&&(Azimuth(i,1) > 150)
         insolight_filtered_measurements(j,:)=insolight_data_complete_may(i,:);
         j=j+1;
     end

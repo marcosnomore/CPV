@@ -1,9 +1,9 @@
 # Aplicación del modelo PVSyst
 
-module_params = {'gamma_ref' : 5.524, 'mu_gamma' :R 0.0012, 'I_L_ref' : 0.96, 
-                 'I_o_ref' :R 0.000000000004, 'R_sh_ref' : 5226, 
+module_params = {'gamma_ref' : 5.524, 'mu_gamma' : 0.003, 'I_L_ref' : 0.96, 
+                 'I_o_ref' : 0.00000000017, 'R_sh_ref' : 5226, 
                  'R_sh_0': 21000, 'R_sh_exp' : 5.50, 'R_s' : 0.01, 
-                 'alpha_sc' : 0.00, 'EgRef' : 1.87, 'irrad_ref' : 1000, 
+                 'alpha_sc' : 0.00, 'EgRef' : 3.91, 'irrad_ref' : 1000, 
                  'temp_ref' : 25, 'cells_in_series' : 12, 'eta_m' : 0.32, 
                  'alpha_absorption' : 0.9}
 
@@ -50,6 +50,14 @@ for weight_am in np.arange(0,1,0.05):
         weight_am_final = weight_am
         rmsd = rmsd_temp
 
+
+modeled_power_final = estimation * (np.multiply(weight_am_final, uf_am) + 
+                                    np.multiply(1.0-weight_am_final, uf_at))
+
+a= np.divide(real_power,modeled_power_final)
+np.mean(a)
+b= np.divide(real_power,estimation)
+np.mean(b)
 
 
 AirMass = filt_data[:,24]

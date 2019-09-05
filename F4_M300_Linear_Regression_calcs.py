@@ -30,10 +30,8 @@ plt.plot(nontemp_airmass, nontemp_IscDNI, 'b.', Airmass_aux, IscDNI_medians,
          'g.', x, y1, 'g', x, y2, 'r')
 
 IscDNI_ast = 3.346/1000
-uf_am = []
-for i in range(len(airmass_array)):
-    uf_am.append(get_single_util_factor(airmass_array[i], thld, 
-                                        m_low/IscDNI_ast, m_high/IscDNI_ast))
+uf_am = get_simple_util_factor(airmass_array, thld, m_low/IscDNI_ast, 
+                               m_high/IscDNI_ast)
 
 # Carga y Procesado de Datos sin influencia de la Masa de Aire
 
@@ -48,7 +46,5 @@ m_low, n_low, m_high, n_high, thld = calc_uf_lines(nonairmass_temp,
 
 AmbientTemp = data[:,10]
 
-uf_at = []
-for i in range(len(AmbientTemp)):
-    uf_at.append(get_single_util_factor(AmbientTemp[i], thld, m_low/IscDNI_ast, 
-                                        m_high/IscDNI_ast))
+uf_at = get_simple_util_factor(AmbientTemp, thld, m_low/IscDNI_ast, 
+                               m_high/IscDNI_ast)

@@ -1,9 +1,9 @@
 # Aplicación del modelo PVSyst
 
-module_params = {'gamma_ref' : 4.456, 'mu_gamma' : 0.0012, 'I_L_ref' : 3.346, 
-                 'I_o_ref' : 0.000000000004, 'R_sh_ref' : 4400, 
-                 'R_sh_0': 17500, 'R_sh_exp' : 5.50, 'R_s' : 0.736, 
-                 'alpha_sc' : 0.00, 'EgRef' : 1.87, 'irrad_ref' : 1000, 
+module_params = {'gamma_ref' : 5.389, 'mu_gamma' : 0.002, 'I_L_ref' : 3.058, 
+                 'I_o_ref' : 0.00000000045, 'R_sh_ref' : 18194, 
+                 'R_sh_0': 73000, 'R_sh_exp' : 5.50, 'R_s' : 0.01, 
+                 'alpha_sc' : 0.00, 'EgRef' : 3.91, 'irrad_ref' : 1000, 
                  'temp_ref' : 25, 'cells_in_series' : 42, 'eta_m' : 0.29, 
                  'alpha_absorption' : 0.9}
 
@@ -51,6 +51,11 @@ for weight_am in np.arange(0,1,0.05):
         rmsd = rmsd_temp
 
 
+modeled_power_final = estimation * (np.multiply(weight_am_final, uf_am) + 
+                                    np.multiply(1.0-weight_am_final, uf_at))
+
+a= np.divide(real_power,modeled_power_final)
+np.mean(a)
 
 AirMass = data[:,33]
 real_voltage = data[:, 0]
@@ -59,7 +64,7 @@ estimation_volt = csys.dc['v_oc']
 residuals_volt = estimation_volt - real_voltage
 
 plt.plot(AirMass, residuals_volt, 'b.')
-
+plt.plot(AmbientTemp, residuals_volt, 'b.')
 
 real_current = data[:, 1]
 estimation_curr = csys.dc['i_sc']
@@ -67,7 +72,7 @@ estimation_curr = csys.dc['i_sc']
 residuals_curr = estimation_curr - real_current
 
 plt.plot(AirMass, residuals_curr, 'b.')
-
+plt.plot(AmbientTemp, residuals_curr, 'b.')
 
 
 
