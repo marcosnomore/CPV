@@ -53,21 +53,25 @@ for weight_am in np.arange(0,1,0.05):
 
 modeled_power_final = estimation * (np.multiply(weight_am_final, uf_am) + 
                                     np.multiply(1.0-weight_am_final, uf_at))
-
-a= np.divide(real_power,modeled_power_final)
-np.mean(a)
-b= np.divide(real_power,estimation)
-np.mean(b)
+rmsd = math.sqrt(mean_squared_error(real_power, modeled_power_final))
 
 
 AirMass = filt_data[:,24]
 real_voltage = filt_data[:, 6]
 estimation_volt = csys.dc['v_oc']
-
 residuals_volt = estimation_volt - real_voltage
 
 plt.plot(AirMass, residuals_volt, 'b.')
+plt.xlabel('Masa de Aire (-)')
+plt.ylabel('Voc estimada por PVSyst - Voc medida')
+plt.title('Residuos de Voc sin UF en función de la Masa de Aire')
+plt.savefig("grafica2.png", dpi=300)
 
+plt.plot(AmbientTemp, residuals_volt, 'b.')
+plt.xlabel('Temperatura Ambiente (ºC)')
+plt.ylabel('Voc estimada por PVSyst - Voc medida')
+plt.title('Residuos de Voc sin UF en función de la Temperatura Ambiente')
+plt.savefig("grafica3.png", dpi=300)
 
 real_current = filt_data[:, 1]
 estimation_curr = csys.dc['i_sc']
@@ -75,7 +79,44 @@ estimation_curr = csys.dc['i_sc']
 residuals_curr = estimation_curr - real_current
 
 plt.plot(AirMass, residuals_curr, 'b.')
+plt.xlabel('Masa de Aire (-)')
+plt.ylabel('Isc estimada por PVSyst - Isc medida')
+plt.title('Residuos de Isc sin UF en función de la Masa de Aire')
+plt.savefig("grafica4.png", dpi=300)
 
+plt.plot(AmbientTemp, residuals_curr, 'b.')
+plt.xlabel('Temperatura Ambiente (ºC)')
+plt.ylabel('Isc estimada por PVSyst - Isc medida')
+plt.title('Residuos de Isc sin UF en función de la Temperatura Ambiente')
+plt.savefig("grafica5.png", dpi=300)
+
+residuals_power = estimation - real_power
+
+plt.plot(AirMass, residuals_power, 'b.')
+plt.xlabel('Masa de Aire (-)')
+plt.ylabel('Pmpp estimada por PVSyst - Pmpp medida')
+plt.title('Residuos de Pmpp sin UF en función de la Masa de Aire')
+plt.savefig("grafica6.png", dpi=300)
+
+plt.plot(AmbientTemp, residuals_power, 'b.')
+plt.xlabel('Temperatura Ambiente (ºC)')
+plt.ylabel('Pmpp estimada por PVSyst - Pmpp medida')
+plt.title('Residuos de Pmpp sin UF en función de la Temperatura Ambiente')
+plt.savefig("grafica7.png", dpi=300)
+
+residuals_power_uf = modeled_power_final - real_power
+
+plt.plot(AirMass, residuals_power_uf, 'b.')
+plt.xlabel('Masa de Aire (-)')
+plt.ylabel('Pmpp estimada corregida - Pmpp medida')
+plt.title('Residuos de Pmpp aplicando UF en función de la Masa de Aire')
+plt.savefig("grafica8.png", dpi=300)
+
+plt.plot(AmbientTemp, residuals_power_uf, 'b.')
+plt.xlabel('Temperatura Ambiente (ºC)')
+plt.ylabel('Pmpp estimada corregida - Pmpp medida')
+plt.title('Residuos de Pmpp aplicando UF en función de la Temperatura Ambiente')
+plt.savefig("grafica9.png", dpi=300)
 
 
 

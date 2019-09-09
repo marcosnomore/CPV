@@ -21,13 +21,18 @@ for i in np.arange(1,2.8,0.1):
 
 m_low, n_low, m_high, n_high, thld = calc_uf_lines(Airmass_aux, IscDNI_medians)
 
-x = np.arange(1,5,0.1)
-y1 = m_low * x + n_low
-y2 = m_high * x + n_high
+x1 = np.arange(1,2.3,0.1)
+y1 = m_low * x1 + n_low
+x2 = np.arange(1.8,5,0.1)
+y2 = m_high * x2 + n_high
 
 import matplotlib.pyplot as plt
 plt.plot(nontemp_airmass, nontemp_IscDNI, 'b.', Airmass_aux, IscDNI_medians, 
-         'g.', x, y1, 'g', x, y2, 'r')
+         'g.', x1, y1, 'g', x2, y2, 'r')
+plt.xlabel('Masa de Aire (-)')
+plt.ylabel('Isc/DNI (A/(W/m2))')
+plt.title('Análisis de Isc/DNI en función de la Masa de Aire')
+plt.savefig("grafica1.png", dpi=300)
 
 IscDNI_ast = 3.346/1000
 uf_am = get_simple_util_factor(airmass_array, thld, m_low/IscDNI_ast, 

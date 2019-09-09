@@ -9,7 +9,7 @@ zenith = filt_data[:, 18]
 azimuth = filt_data[:, 19]
 
 
-# Se calcula el AOI
+# Se calcula el AOI y su UF
 module_params = {'gamma_ref' : 5.524, 'mu_gamma' : 0.003, 'I_L_ref' : 0.96, 
                  'I_o_ref' : 0.00000000017, 'R_sh_ref' : 5226, 
                  'R_sh_0': 21000, 'R_sh_exp' : 5.50, 'R_s' : 0.01, 
@@ -23,15 +23,18 @@ scsys = StaticCPVSystem(surface_tilt=30, surface_azimuth=180, module=None,
                  inverter_parameters=None, racking_model='insulated',
                  losses_parameters=None, name=None)
 
-aoi = scsys.get_aoi(solar_zenith=nontemp_zenith, 
-                            solar_azimuth=nontemp_azimuth)
+aoi = scsys.get_aoi(solar_zenith=zenith, solar_azimuth=azimuth)
 
-m_low, n_low, m_high, n_high, thld = calc_uf_lines(nontemp_aoi, nontemp_IscDII, 
-                                                   limit=60)
+m_low, n_low, m_high, n_high, thld = calc_uf_lines(aoi, IscDII, limit=60)
 
-x = np.arange(20,85,0.1)
-y1 = m_low * x + n_low
-y2 = m_high * x + n_high
+x1 = np.arange(10,70,0.1)
+y1 = m_low * x1 + n_low
+x2 = np.arange(55,85,0.1)
+y2 = m_high * x2 + n_high
 
 import matplotlib.pyplot as plt
-plt.plot(nontemp_aoi, nontemp_IscDII, 'b.', x, y1, 'g', x, y2, 'r')
+plt.plot(aoi, IscDII, 'b.', x1, y1, 'g', x2, y2, 'r')
+plt.xlabel('Ángulo de Incidencia (º)')
+plt.ylabel('Isc/DII (A/(W/m2))')
+plt.title('Análisis de Isc/DII en función del Ángulo de Incidencia')
+plt.savefig("grafica1.png", dpi=300)

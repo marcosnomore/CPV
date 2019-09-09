@@ -43,20 +43,3 @@ title('Isc/DII en función de la Masa de Aire')
 xlabel('Masa de Aire Relativa (-)')
 ylabel('Isc/DII (A/(W/m2))')
 figure;
-
-% Se exportan los datos filtrados completos.
-dlmwrite('insolight_data_filtered_complete_may.txt',insolight_filtered_measurements,'newline','pc')
-
-% Se elimina la influencia de la temperatura ambiente.
-nontemp_measurements=zeros(1000, 20);
-media_tempair=mean(AirTemp_filtered.');
-j=1; 
-for i=1:4727
-    if (AirTemp_filtered(i,1) < media_tempair + 6)&&(AirTemp_filtered(i,1) > media_tempair - 1)
-        nontemp_measurements(j,:)=insolight_filtered_measurements(i,:);
-        j=j+1;
-    end
-end
-
-% Se exportan los datos.
-dlmwrite('insolight_nontemp_measurements_may.txt',nontemp_measurements,'newline','pc')
